@@ -43,10 +43,10 @@
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 
-@if($product->photo)
-<div class="mt-3">
-    <h5>Current Product Image:</h5>
-    <img src="{{ asset('images/' . $product->photo) }}" alt="Product Image" width="200">
-</div>
-@endif
-@endsection
+        @if($product->photo)
+        <div class="mt-3">
+            <h5>Current Product Image:</h5>
+            <img src="{{ asset('images/' . $product->photo) }}" alt="Product Image" width="200">
+        </div>
+        @endif
+        @endsection

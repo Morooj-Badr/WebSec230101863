@@ -57,4 +57,15 @@ use Illuminate\Support\Facades\Route;
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+
+    use App\Http\Controllers\Web\studentController;
+
+    Route::get('/student', [StudentController::class, 'view'])->name('student');
+    Route::get('/students/add/{id?}', [StudentController::class, 'add'])->name('students.add');
+
+    Route::post('/students/save/{id?}', [StudentController::class, 'save'])->name('student_save');
+
+
+
+    
     

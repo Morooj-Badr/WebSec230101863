@@ -38,25 +38,25 @@ class UsersController extends Controller {
             return redirect()->back()->withErrors('User not found.');
         }
     
-        // Generate a temporary password
-        $tempPassword = rand(100000, 999999);
-        $user->password = Hash::make($tempPassword);
-        $user->save();
+        // // Generate a temporary password
+        // $tempPassword = rand(100000, 999999);
+        // $user->password = Hash::make($tempPassword);
+        // $user->save();
     
-        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            // Send Email (You need to set up Mail in Laravel)
-            Mail::to($user->email)->send(new \App\Mail\ResetPasswordMail($tempPassword));
-        } else {
-            // Send SMS
-            $twilio = new Client(env('TWILIO_SID'), env('TWILIO_AUTH_TOKEN'));
-            $twilio->messages->create(
-                $user->mobile_number,
-                [
-                    "from" => env('TWILIO_PHONE'),
-                    "body" => "Your temporary password is: $tempPassword"
-                ]
-            );
-        }
+        // if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+        //     // Send Email (You need to set up Mail in Laravel)
+        //     Mail::to($user->email)->send(new \App\Mail\ResetPasswordMail($tempPassword));
+        // } else {
+        //     // Send SMS
+        //     $twilio = new Client(env('TWILIO_SID'), env('TWILIO_AUTH_TOKEN'));
+        //     $twilio->messages->create(
+        //         $user->mobile_number,
+        //         [
+        //             "from" => env('TWILIO_PHONE'),
+        //             "body" => "Your temporary password is: $tempPassword"
+        //         ]
+        //     );
+        // }
     
         return redirect()->back()->with('message', 'Temporary password sent successfully.');
     }

@@ -28,6 +28,13 @@
     </li>
 @endif
 
+        @if(auth()->check())
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('student') }}">Students</a>
+            </li>
+        @endif
+
+
         </ul>
         </ul>
         <ul class="navbar-nav">
