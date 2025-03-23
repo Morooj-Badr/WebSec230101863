@@ -1,5 +1,6 @@
 <?php
-namespace App\Http\Controllers\Web;
+
+namespace App\Http\Controllers\web;
 
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Validation\Rules\Password;
@@ -26,9 +27,17 @@ class UsersController extends Controller {
         return view('users.list', compact('users'));
     }
 
-	public function register(Request $request) {
+    public function register(Request $request) {
+        // If user is logged in and is NOT an admin, deny access
+        if (auth()->check() && !auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+        
         return view('users.register');
     }
+    
+    
+    
 
     public function doRegister(Request $request) {
 

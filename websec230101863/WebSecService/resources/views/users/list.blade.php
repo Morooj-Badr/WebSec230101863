@@ -8,6 +8,7 @@
 </div>
 <form>
     <div class="row">
+
         <div class="col col-sm-2">
             <input name="keywords" type="text"  class="form-control" placeholder="Search Keywords" value="{{ request()->keywords }}" />
         </div>
@@ -17,6 +18,11 @@
         <div class="col col-sm-1">
             <button type="reset" class="btn btn-danger">Reset</button>
         </div>
+        <div class="col col-sm-2">
+          @if(auth()->check() && auth()->user()->hasRole('Admin'))
+            <a href="{{ route('register') }}" class="btn btn-success">+ Add User</a>
+          @endif
+      </div>  
     </div>
 </form>
 

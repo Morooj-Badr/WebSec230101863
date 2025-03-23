@@ -1,10 +1,10 @@
 <?php
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\ProductsController;
+
+
+
 use App\Http\Controllers\Web\UsersController;
-
-
 Route::get('register', [UsersController::class, 'register'])->name('register');
 Route::post('register', [UsersController::class, 'doRegister'])->name('do_register');
 Route::get('login', [UsersController::class, 'login'])->name('login');
@@ -19,7 +19,7 @@ Route::get('users/edit_password/{user?}', [UsersController::class, 'editPassword
 Route::post('users/save_password/{user}', [UsersController::class, 'savePassword'])->name('save_password');
 
 
-
+use App\Http\Controllers\Web\ProductsController;
 Route::get('products', [ProductsController::class, 'list'])->name('products_list');
 Route::get('products/edit/{product?}', [ProductsController::class, 'edit'])->name('products_edit');
 Route::post('products/save/{product?}', [ProductsController::class, 'save'])->name('products_save');
@@ -57,18 +57,33 @@ Route::get('/minitest', function () {
     return view('minitest' , ['bill' => $bill]);
 });
 
+    Route::get('/transcript', function () {
+        $courses = [
+            ['name' => 'Web Security', 'grade' => 'A'],
+            ['name' => 'Digital Forensics', 'grade' => 'B+'],
+            ['name' => 'Network Security', 'grade' => 'A-'],
+            ['name' => 'Linux Programming', 'grade' => 'B']
+        ];
+
+        return view('transcript', compact('courses'));
+    })->name('transcript');
+
+    Route::get('/calculator', function () {
+        return view('calculator');
+    })->name('calculator');
+    
+
+
 use App\Http\Controllers\Web\StudentController;
 
-// Ensure Laravel properly registers the route
-Route::get('/students/add', function () {
-    return "Route is working!";
-});
-
-// Now re-register it properly
 Route::get('/students/add', [StudentController::class, 'add'])->name('students.add');
-
-// Keep your 'view' route
 Route::get('/student', [StudentController::class, 'view'])->name('student');
-
-// Your 'save' route remains the same
 Route::post('/students/save', [StudentController::class, 'save'])->name('student_save');
+
+
+use App\Http\Controllers\web\QuestionController;
+use App\Http\Controllers\web\ExamController;
+
+Route::resource('questions', QuestionController::class);
+Route::get('exam', [ExamController::class, 'start'])->name('exam.start');
+Route::post('exam/submit', [ExamController::class, 'submit'])->name('exam.submit');

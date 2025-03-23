@@ -17,6 +17,20 @@
                 <a class="nav-link" href="./minitest">Mini Test</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="./transcript">Transcript</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="./calculator">Calculator</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('exam.start') }}">MCQ</a>
+            </li>
+            @if(auth()->check())
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('questions.index') }}">Manage Questions</a>
+            </li>
+            @endif
+            <li class="nav-item">
                 <a class="nav-link" href="{{route('products_list')}}">Products</a>
             </li>
             @can('show_users')
