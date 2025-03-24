@@ -1,16 +1,18 @@
 <?php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model  {
+class Product extends Model
+{
+    use HasFactory;
 
-	protected $fillable = [
-        'code',
-        'name',
-        'price',
-        'model',
-        'description',
-        'photo'
-    ];
+    protected $fillable = ['name', 'model', 'code', 'price', 'description', 'photo', 'stock'];
+
+    // Check if the product has stock available
+    public function hasStock()
+    {
+        return $this->stock > 0;
+    }
 }
