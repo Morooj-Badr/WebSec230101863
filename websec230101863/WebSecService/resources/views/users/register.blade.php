@@ -31,6 +31,10 @@
       <div class="form-group mb-2">
         <button type="submit" class="btn btn-primary">Register</button>
       </div>
+      <div class="form-group mb-2">
+
+</div>
+
     </form>
     </div>
   </div>

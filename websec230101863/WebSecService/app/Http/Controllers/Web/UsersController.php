@@ -19,11 +19,18 @@ class UsersController extends Controller {
 	use ValidatesRequests;
 
     public function list(Request $request) {
-        if(!auth()->user()->hasPermissionTo('show_users'))abort(401);
-        $query = User::select('*');
+        if(!auth()->user()->hasPermissionTo('show_users')) abort(401);
+    
+        // Only get users with the 'Customer' role
+        $query = User::role('Customer'); // Filter users with the 'Customer' role
+    
+        // Additional filtering if keywords are provided
         $query->when($request->keywords, 
-        fn($q)=> $q->where("name", "like", "%$request->keywords%"));
+            fn($q) => $q->where("name", "like", "%$request->keywords%")
+        );
+        
         $users = $query->get();
+    
         return view('users.list', compact('users'));
     }
 
@@ -152,13 +159,15 @@ class UsersController extends Controller {
     }
 
     public function delete(Request $request, User $user) {
-
-        if(!auth()->user()->hasPermissionTo('delete_users')) abort(401);
-
-        //$user->delete();
-
+        if (!auth()->user()->hasPermissionTo('delete_users')) {
+            abort(401);
+        }
+    
+        $user->delete();  // Correct method to delete the user
+    
         return redirect()->route('users');
     }
+    
 
     public function editPassword(Request $request, User $user = null) {
 
@@ -194,4 +203,37 @@ class UsersController extends Controller {
 
         return redirect(route('profile', ['user'=>$user->id]));
     }
+    
+    public function addCreditForm()
+    {
+        return view('credit.add_credit'); // specify the folder path
+
+    }
+
+    // Handle adding credit
+    // In CreditController.php
+
+public function addCredit(Request $request, User $user)
+{
+    // Check if the logged-in user has the 'employee' role
+    if (!auth()->user()->hasRole('Employee')) {
+        return redirect()->back()->with('error', 'You do not have permission to add credit.');
+    }
+
+    // Validate input to ensure it's numeric and positive
+    $request->validate([
+        'amount' => 'required|numeric|min:0.01', // Enforce positive amounts only
+    ]);
+
+    // Add the credit to the specified user's account
+    $user->credit += $request->input('amount');
+    $user->save();
+
+    // Redirect with a success message
+    return redirect(route('profile', ['user'=>$user->id]));
+}
+
+    
+    
+    
 } 

@@ -3,81 +3,147 @@ namespace App\Http\Controllers\Web;
 
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use DB;
+
+
+
+use Illuminate\Support\Facades\Auth; // ✅ ADD THIS LINE
+
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 
+
+
+
 class ProductsController extends Controller {
 
-    use ValidatesRequests;
+	use ValidatesRequests;
 
-    public function __construct()
+	public function __construct()
     {
         $this->middleware('auth:web')->except('list');
     }
 
-    // ✅ List products with filtering and sorting
-    public function list(Request $request) {
-        $query = Product::query();
+	public function list(Request $request) {
 
-        // ✅ Apply search filters
-        $query->when($request->keywords, fn($q) => 
-            $q->where("name", "like", "%{$request->keywords}%"));
+		$query = Product::select("products.*");
 
-        $query->when($request->min_price, fn($q) => 
-            $q->where("price", ">=", $request->min_price));
+		$query->when($request->keywords, 
+		fn($q)=> $q->where("name", "like", "%$request->keywords%"));
 
-        $query->when($request->max_price, fn($q) => 
-            $q->where("price", "<=", $request->max_price));
+		$query->when($request->min_price, 
+		fn($q)=> $q->where("price", ">=", $request->min_price));
+		
+		$query->when($request->max_price, fn($q)=> 
+		$q->where("price", "<=", $request->max_price));
+		
+		$query->when($request->order_by, 
+		fn($q)=> $q->orderBy($request->order_by, $request->order_direction??"ASC"));
 
-        // ✅ Secure sorting (only allow certain columns)
-        $allowedSortFields = ['name', 'price'];
-        if ($request->order_by && in_array($request->order_by, $allowedSortFields)) {
-            $query->orderBy($request->order_by, $request->order_direction ?? "ASC");
+		$products = $query->get();
+
+		return view('products.list', compact('products'));
+	}
+
+	public function edit(Request $request, Product $product = null) {
+
+		if(!auth()->user()) return redirect('/');
+
+		$product = $product??new Product();
+
+		return view('products.edit', compact('product'));
+	}
+
+	public function save(Request $request, Product $product = null) {
+
+		$this->validate($request, [
+			'code' => ['required', 'string', 'max:32'],
+			'name' => ['required', 'string', 'max:128'],
+			'model' => ['required', 'string', 'max:256'],
+			'description' => ['required', 'string', 'max:1024'],
+			'price' => ['required', 'numeric'],
+			'quantity' => ['required', 'integer', 'min:1'],  // Add quantity validation
+		]);
+	
+		$product = $product ?? new Product();
+		$product->fill($request->all());
+		$product->save();
+	
+		return redirect()->route('products_list');
+	}
+	
+
+	// Controller method for adding an item to the cart
+	public function addToCart(Request $request, $productId)
+	{
+		$product = Product::find($productId);
+		
+		$cart = session()->get('cart', []);
+	
+		$quantity = $request->input('quantity', 1); // Get the quantity from the request, default to 1 if not provided
+		
+		// If the product is already in the cart, just update the quantity
+		if (isset($cart[$productId])) {
+			$cart[$productId]['quantity'] += $quantity; // Add the specified quantity
+		} else {
+			$cart[$productId] = [
+				'name' => $product->name,
+				'quantity' => $quantity,
+				'price' => $product->price,
+				'image' => $product->photo, // Assuming 'photo' is the image field in your product model
+			];
+		}
+	
+		session()->put('cart', $cart);
+	
+		return redirect()->route('cart.index');
+	}
+	
+
+	
+	public function buy(Request $request, $productId)
+{
+    $product = Product::find($productId);
+    $user = Auth::user();
+    
+    // Get the quantity from the form
+    $quantityToBuy = $request->input('quantity', 1);  // Default to 1 if no quantity provided
+
+    // Check if user has enough credit
+    if ($user->credit >= $product->price * $quantityToBuy) {
+        // Check if enough quantity is available
+        if ($product->quantity >= $quantityToBuy) {
+            // Deduct the price from user's credit
+            $user->credit -= $product->price * $quantityToBuy;
+            $user->save();
+
+            // Reduce the product quantity
+            $product->quantity -= $quantityToBuy;
+            $product->save();
+
+            // You can also record the order in the database if needed
+
+            return redirect()->route('profile', ['user' => $user->id])
+                ->with('success', 'Product bought successfully!');
+        } else {
+            return back()->with('error', 'Not enough stock available to complete the purchase.');
         }
-
-        $products = $query->get();
-
-        return view('products.list', compact('products'));
-    }
-
-    // ✅ Show product edit form
-    public function edit(Request $request, Product $product = null) {
-        $this->authorize('edit_products'); // ✅ Ensure user has permission
-
-        $product = $product ?? new Product();
-
-        return view('products.edit', compact('product'));
-    }
-
-    // ✅ Save product (create or update)
-    public function save(Request $request, Product $product = null) {
-        $this->authorize($product ? 'edit_products' : 'add_products'); // ✅ Ensure correct permission
-
-        $validatedData = $request->validate([
-            'code' => 'required|string|max:32',
-            'name' => 'required|string|max:128',
-            'model' => 'required|string|max:256',
-            'description' => 'required|string|max:1024',
-            'price' => 'required|numeric|min:0',
-        ]);
-
-        $product = $product ?? new Product();
-        $product->fill($validatedData);
-        $product->save();
-
-        return redirect()->route('products_list')->with('success', 'Product saved successfully.');
-    }
-
-    // ✅ Delete product
-    public function delete(Request $request, Product $product) {
-        if (!auth()->user()->hasPermissionTo('delete_products')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $product->delete();
-
-        return redirect()->route('products_list')->with('success', 'Product deleted successfully.');
+    } else {
+        return back()->with('error', 'Not enough credit to buy this product.');
     }
 }
+
+
+
+
+
+
+	public function delete(Request $request, Product $product) {
+
+		if(!auth()->user()->hasPermissionTo('delete_products')) abort(401);
+
+		$product->delete();
+
+		return redirect()->route('products_list');
+	}
+} 

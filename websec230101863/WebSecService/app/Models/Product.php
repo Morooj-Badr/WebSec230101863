@@ -4,15 +4,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// app/Models/Product.php
+// app/Models/Product.php
 class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'model', 'code', 'price', 'description', 'photo', 'stock'];
+    protected $fillable = [
+        'name', 'model', 'code', 'price', 'description', 'photo', 'quantity', // Include 'quantity'
+    ];
 
-    // Check if the product has stock available
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
+    // Function to check if the product has stock
     public function hasStock()
     {
-        return $this->stock > 0;
+        return $this->quantity > 0; // Updated to check 'quantity' instead of 'stock'
     }
+
 }
+
+

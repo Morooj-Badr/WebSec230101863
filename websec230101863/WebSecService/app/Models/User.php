@@ -26,7 +26,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'user_type',  // Add this line
     ];
+// app/Models/User.php
+public function purchases()
+{
+    return $this->hasMany(Purchase::class);
+}
+
 
     /**
      * The attributes that should be hidden for serialization.

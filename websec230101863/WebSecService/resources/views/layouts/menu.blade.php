@@ -38,11 +38,7 @@
                 <a class="nav-link" href="{{route('users')}}">Users</a>
             </li>
             @endcan
-            @if(auth()->user()->can('list_customers'))
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('customers.index') }}">Customers</a>
-</li>
-@endif
+
 
             @if(auth()->check())
             <li class="nav-item">

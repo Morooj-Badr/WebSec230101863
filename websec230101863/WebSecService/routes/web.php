@@ -3,13 +3,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\UsersController;
 use App\Http\Controllers\Web\ProductsController;
-use App\Http\Controllers\Web\OrdersController;
-use App\Http\Controllers\Web\PurchasesController;
-use App\Http\Controllers\Web\EmployeesController;
-use App\Http\Controllers\Web\AdminController;
+
 use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\QuestionController;
 use App\Http\Controllers\Web\ExamController;
+use App\Http\Controllers\Web\CartController;
 
 
 Route::get('register', [UsersController::class, 'register'])->name('register');
@@ -18,25 +16,35 @@ Route::get('login', [UsersController::class, 'login'])->name('login');
 Route::post('login', [UsersController::class, 'doLogin'])->name('do_login');
 Route::get('logout', [UsersController::class, 'doLogout'])->name('do_logout');
 
-
 Route::middleware(['auth'])->group(function () {
     Route::get('users', [UsersController::class, 'list'])->name('users');
     Route::get('profile/{user?}', [UsersController::class, 'profile'])->name('profile');
     Route::get('users/edit/{user?}', [UsersController::class, 'edit'])->name('users_edit');
     Route::post('users/save/{user}', [UsersController::class, 'save'])->name('users_save');
-    Route::get('users/delete/{user}', [UsersController::class, 'delete'])->name('users_delete');
+    Route::delete('users/delete/{user}', [UsersController::class, 'delete'])->name('users_delete');
     Route::get('users/edit_password/{user?}', [UsersController::class, 'editPassword'])->name('edit_password');
     Route::post('users/save_password/{user}', [UsersController::class, 'savePassword'])->name('save_password');
+    
+    Route::get('/add-credit', [UsersController::class, 'addCreditForm'])->name('add_credit');
+    Route::post('/add-credit', [UsersController::class, 'addCredit'])->name('submit_add_credit');
 });
-
 
 Route::middleware(['auth'])->group(function () {
     Route::get('products', [ProductsController::class, 'list'])->name('products_list');
     Route::get('products/edit/{product?}', [ProductsController::class, 'edit'])->name('products_edit');
     Route::post('products/save/{product?}', [ProductsController::class, 'save'])->name('products_save');
     Route::get('products/delete/{product}', [ProductsController::class, 'delete'])->name('products_delete');
+    Route::post('/add-to-cart/{product}', [ProductsController::class, 'addToCart'])->name('add_to_cart');
+    Route::get('/products/buy/{productId}', [ProductsController::class, 'buy'])->name('products.buy');
 });
 
+Route::middleware(['auth'])->group(function () {
+    // Cart Routes
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index'); // Cart view
+    Route::get('/cart/remove/{productId}', [CartController::class, 'remove'])->name('cart.remove'); // Remove item from cart
+    Route::get('checkout', [CartController::class, 'checkout'])->name('checkout'); // Show checkout form
+    Route::post('checkout', [CartController::class, 'checkout'])->name('checkout.submit'); // Handle checkout submission
+});
 
 Route::get('/', function () {
     return view('welcome');
@@ -52,7 +60,6 @@ Route::get('/even', fn() => view('even'));
 Route::get('/prime', fn() => view('prime'));
 Route::get('/test', fn() => view('test'));
 
-
 Route::get('/minitest', function () {
     $bill = [
         ['item' => 'Milk', 'quantity' => 2, 'price' => 20],
@@ -62,7 +69,6 @@ Route::get('/minitest', function () {
     ];
     return view('minitest', ['bill' => $bill]);
 });
-
 
 Route::get('/transcript', function () {
     $courses = [
@@ -80,28 +86,6 @@ Route::get('/students/add', [StudentController::class, 'add'])->name('students.a
 Route::get('/student', [StudentController::class, 'view'])->name('student');
 Route::post('/students/save', [StudentController::class, 'save'])->name('student_save');
 
-
 Route::resource('questions', QuestionController::class);
 Route::get('exam', [ExamController::class, 'start'])->name('exam.start');
 Route::post('exam/submit', [ExamController::class, 'submit'])->name('exam.submit');
-
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/orders', [OrdersController::class, 'list'])->name('orders_list');
-    Route::post('/purchase/{product}', [OrdersController::class, 'purchase'])->name('orders.purchase');
-    
-    Route::post('/buy-product/{id}', [PurchasesController::class, 'buy'])->name('purchases.buy');
-});
-
-
-
-
-Route::post('/purchase/{id}', [PurchasesController::class, 'buy'])->name('purchases.buy');
-use App\Http\Controllers\CustomerController;
-
-Route::post('/customers/{customer}/update-credit', [CustomerController::class, 'updateCredit'])
-    ->name('customers.updateCredit')
-    ->middleware('auth'); // Ensure authentication
-    Route::get('/customers', [CustomerController::class, 'index'])
-    ->name('customers.index')
-    ->middleware('auth'); // Ensure authentication

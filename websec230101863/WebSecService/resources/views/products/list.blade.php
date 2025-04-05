@@ -11,31 +11,29 @@
         @endcan
     </div>
 </div>
-
-<!-- 🔍 Search & Filter Form -->
-<form method="GET" action="{{ route('products_list') }}">
+<form>
     <div class="row">
         <div class="col col-sm-2">
-            <input name="keywords" type="text" class="form-control" placeholder="Search Keywords" value="{{ request()->keywords }}" />
+            <input name="keywords" type="text"  class="form-control" placeholder="Search Keywords" value="{{ request()->keywords }}" />
         </div>
         <div class="col col-sm-2">
-            <input name="min_price" type="number" class="form-control" placeholder="Min Price" value="{{ request()->min_price }}"/>
+            <input name="min_price" type="numeric"  class="form-control" placeholder="Min Price" value="{{ request()->min_price }}"/>
         </div>
         <div class="col col-sm-2">
-            <input name="max_price" type="number" class="form-control" placeholder="Max Price" value="{{ request()->max_price }}"/>
+            <input name="max_price" type="numeric"  class="form-control" placeholder="Max Price" value="{{ request()->max_price }}"/>
         </div>
         <div class="col col-sm-2">
             <select name="order_by" class="form-select">
-                <option value="" {{ request()->order_by=="" ? "selected" : "" }} disabled>Order By</option>
-                <option value="name" {{ request()->order_by=="name" ? "selected" : "" }}>Name</option>
-                <option value="price" {{ request()->order_by=="price" ? "selected" : "" }}>Price</option>
+                <option value="" {{ request()->order_by==""?"selected":"" }} disabled>Order By</option>
+                <option value="name" {{ request()->order_by=="name"?"selected":"" }}>Name</option>
+                <option value="price" {{ request()->order_by=="price"?"selected":"" }}>Price</option>
             </select>
         </div>
         <div class="col col-sm-2">
             <select name="order_direction" class="form-select">
-                <option value="" {{ request()->order_direction=="" ? "selected" : "" }} disabled>Order Direction</option>
-                <option value="ASC" {{ request()->order_direction=="ASC" ? "selected" : "" }}>ASC</option>
-                <option value="DESC" {{ request()->order_direction=="DESC" ? "selected" : "" }}>DESC</option>
+                <option value="" {{ request()->order_direction==""?"selected":"" }} disabled>Order Direction</option>
+                <option value="ASC" {{ request()->order_direction=="ASC"?"selected":"" }}>ASC</option>
+                <option value="DESC" {{ request()->order_direction=="DESC"?"selected":"" }}>DESC</option>
             </select>
         </div>
         <div class="col col-sm-1">
@@ -47,12 +45,11 @@
     </div>
 </form>
 
-<!-- 🛍 Products List -->
+
 @foreach($products as $product)
     <div class="card mt-2">
         <div class="card-body">
             <div class="row">
-                <!-- 🖼 Product Image -->
                 <div class="col col-sm-12 col-lg-4">
                     <img src="{{asset("images/$product->photo")}}" class="img-thumbnail" alt="{{$product->name}}" width="100%">
                 </div>
@@ -63,35 +60,42 @@
                         </div>
                         <div class="col col-2">
                             @can('edit_products')
-                            <a href="{{route('products_edit', $product->id)}}" class="btn btn-success form-control">Edit</a>
+                                <a href="{{route('products_edit', $product->id)}}" class="btn btn-success form-control">Edit</a>
                             @endcan
                         </div>
                         <div class="col col-2">
                             @can('delete_products')
-                            <a href="{{route('products_delete', $product->id)}}" class="btn btn-danger form-control">Delete</a>
+                                <a href="{{route('products_delete', $product->id)}}" class="btn btn-danger form-control">Delete</a>
                             @endcan
                         </div>
                     </div>
 
-                    <!-- 📜 Product Details -->
                     <table class="table table-striped">
                         <tr><th width="20%">Name</th><td>{{$product->name}}</td></tr>
                         <tr><th>Model</th><td>{{$product->model}}</td></tr>
                         <tr><th>Code</th><td>{{$product->code}}</td></tr>
                         <tr><th>Price</th><td>{{$product->price}}</td></tr>
+                        <!-- Display Quantity Available (Moved after price) -->
+                        <tr><th>Quantity Available</th><td>{{$product->quantity}}</td></tr>
                         <tr><th>Description</th><td>{{$product->description}}</td></tr>
                     </table>
 
-                    <!-- 🛒 Buy Button -->
-                    <a href="{{ route('purchases.buy', $product->id) }}" class="btn btn-primary"
-   onclick="event.preventDefault(); document.getElementById('buy-form-{{ $product->id }}').submit();">
-   Buy Now
-</a>
-
-<form id="buy-form-{{ $product->id }}" action="{{ route('purchases.buy', $product->id) }}" method="POST" style="display: none;">
+                    @if(auth()->check() && auth()->user()->hasRole('Customer'))
+                    
+                    <!-- Add Quantity Input Field (Moved after price) -->
+                    @if(auth()->check() && auth()->user()->hasRole('Customer'))
+<form action="{{ route('add_to_cart', $product->id) }}" method="POST">
     @csrf
+    <div class="form-group">
+        <label for="quantity">Quantity:</label>
+        <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="{{ $product->quantity }}">
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Buy</button>
 </form>
+@endif
 
+
+                    @endif
                 </div>
             </div>
         </div>
