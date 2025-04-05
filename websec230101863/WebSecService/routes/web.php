@@ -28,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/add-credit', [UsersController::class, 'addCreditForm'])->name('add_credit');
     Route::post('/add-credit', [UsersController::class, 'addCredit'])->name('submit_add_credit');
 });
+Route::get('users/{user}/charge-credit', [CreditController::class, 'chargeCredit'])->name('charge_credit');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('products', [ProductsController::class, 'list'])->name('products_list');

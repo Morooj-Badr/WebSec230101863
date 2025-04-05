@@ -66,25 +66,25 @@ class CreditController extends Controller
 }
 // In CreditController.php
 
-// public function chargeCredit(Request $request, User $user)
-// {
-//     // Check if the authenticated user has the 'Employee' role
-//     if (!auth()->user()->hasRole('Employee')) {
-//         return redirect()->back()->with('error', 'You do not have permission to charge credit.');
-//     }
+public function chargeCredit(Request $request, User $user)
+{
+    // Check if the authenticated user has the 'Employee' role
+    if (!auth()->user()->hasRole('Employee')) {
+        return redirect()->back()->with('error', 'You do not have permission to charge credit.');
+    }
 
-//     // Validate the input to ensure it's a positive numeric value
-//     $request->validate([
-//         'amount' => 'required|numeric|min:1',  // Minimum value 1, or adjust as needed
-//     ]);
+    // Validate the input to ensure it's a positive numeric value
+    $request->validate([
+        'amount' => 'required|numeric|min:1',  // Minimum value 1, or adjust as needed
+    ]);
      
-//     // Add the credit to the specified user's account
-//     $user->credit += $request->input('amount');
-//     $user->save();
+    // Add the credit to the specified user's account
+    $user->credit += $request->input('amount');
+    $user->save();
 
-//     return redirect()->route('profile', ['user' => $user->id])
-//                      ->with('success', 'Credit charged successfully!');
-// }
+    return redirect()->route('profile', ['user' => $user->id])
+                     ->with('success', 'Credit charged successfully!');
+}
 
 
 }
