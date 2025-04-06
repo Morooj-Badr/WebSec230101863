@@ -19,20 +19,32 @@ class UsersController extends Controller {
 	use ValidatesRequests;
 
     public function list(Request $request) {
-        if(!auth()->user()->hasPermissionTo('show_users')) abort(401);
+        if (!auth()->user()->hasPermissionTo('show_users')) {
+            abort(401);
+        }
     
-        // Only get users with the 'Customer' role
-        $query = User::role('Customer'); // Filter users with the 'Customer' role
+        // Start the query
+        $query = User::query();
     
-        // Additional filtering if keywords are provided
-        $query->when($request->keywords, 
-            fn($q) => $q->where("name", "like", "%$request->keywords%")
-        );
-        
-        $users = $query->get();
+        // If the logged-in user is an employee, only show customers
+        if (auth()->user()->hasRole('Employee')) {
+            $query->role('Customer');
+        }
+    
+        // Apply keyword search if present
+        if ($request->filled('keywords')) {
+            $query->where(function ($q) use ($request) {
+                $q->where("name", "like", "%" . $request->keywords . "%")
+                  ->orWhere("email", "like", "%" . $request->keywords . "%");
+            });
+        }
+    
+        // Eager load roles for performance
+        $users = $query->with('roles')->get();
     
         return view('users.list', compact('users'));
     }
+    
 
     public function register(Request $request) {
         // If user is logged in and is NOT an admin, deny access
