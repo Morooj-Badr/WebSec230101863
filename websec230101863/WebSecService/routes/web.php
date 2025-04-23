@@ -8,6 +8,8 @@ use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\QuestionController;
 use App\Http\Controllers\Web\ExamController;
 use App\Http\Controllers\Web\CartController;
+use App\Http\Controllers\Web\CreditController;
+
 
 
 Route::get('register', [UsersController::class, 'register'])->name('register');
@@ -24,11 +26,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('users/delete/{user}', [UsersController::class, 'delete'])->name('users_delete');
     Route::get('users/edit_password/{user?}', [UsersController::class, 'editPassword'])->name('edit_password');
     Route::post('users/save_password/{user}', [UsersController::class, 'savePassword'])->name('save_password');
-    
+    Route::get('list/{user?}', [UsersController::class, 'list'])->name('list');
+    Route::get('verify', [UsersController::class, 'verify'])->name('verify');
     Route::get('/add-credit', [UsersController::class, 'addCreditForm'])->name('add_credit');
     Route::post('/add-credit', [UsersController::class, 'addCredit'])->name('submit_add_credit');
 });
 Route::get('users/{user}/charge-credit', [CreditController::class, 'chargeCredit'])->name('charge_credit');
+Route::post('/credit/resetCredit', [CreditController::class, 'resetCredit'])->name('resetCredit');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('products', [ProductsController::class, 'list'])->name('products_list');
@@ -90,3 +94,11 @@ Route::post('/students/save', [StudentController::class, 'save'])->name('student
 Route::resource('questions', QuestionController::class);
 Route::get('exam', [ExamController::class, 'start'])->name('exam.start');
 Route::post('exam/submit', [ExamController::class, 'submit'])->name('exam.submit');
+
+// Password Reset Routes
+Route::get('forgot-password', [App\Http\Controllers\Auth\PasswordResetController::class, 'showRequestForm'])->name('password.request');
+Route::post('forgot-password', [App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [App\Http\Controllers\Auth\PasswordResetController::class, 'reset'])->name('password.update');
+
+

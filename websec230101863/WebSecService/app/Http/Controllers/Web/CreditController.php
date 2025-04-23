@@ -11,22 +11,21 @@ use App\Http\Controllers\Controller;
 
 class CreditController extends Controller
 {
-    // Show the form for adding credit (GET request)
+    
     public function addCredit(Request $request)
     {
-        // Validate the input (amount is required and numeric, no min or max constraints)
+        
         $request->validate([
-            'amount' => 'required|numeric',  // No min or max
+            'amount' => 'required|numeric',  
         ]);
     
-        // Get the authenticated user
         $user = Auth::user();
     
-        // Add credit to the user's existing credit
+       
         $user->credit += $request->amount;
         $user->save();
     
-        // Redirect back to the profile with a success message
+        
         return redirect()->route('profile', ['user' => $user->id])
             ->with('success', 'Credit added successfully!');
     }
@@ -36,24 +35,23 @@ class CreditController extends Controller
     $product = Product::findOrFail($productId);
     $user = Auth::user();
 
-    // Check if the product has enough stock
+    
     if ($product->quantity > 0) {
-        // Check if the user has enough credit
+        
         if ($user->credit >= $product->price) {
-            // Deduct the price from user's credit
+          
             $user->credit -= $product->price;
             $user->save();
 
-            // Create a new purchase record
+            
             $purchase = new Purchase();
             $purchase->user_id = $user->id;
             $purchase->product_id = $product->id;
-            $purchase->quantity = 1; // You can adjust this if you need to track multiple quantities
+            $purchase->quantity = 1;
             $purchase->total_price = $product->price;
             $purchase->save();
 
-            // Update the product quantity in the database
-            $product->quantity -= 1; // Decrease quantity by 1 for each purchase
+            $product->quantity -= 1; 
             $product->save();
 
             return redirect()->route('profile')->with('success', 'Product purchased successfully!');
@@ -64,27 +62,37 @@ class CreditController extends Controller
         return back()->with('error', 'This product is out of stock.');
     }
 }
-// In CreditController.php
+
 
 public function chargeCredit(Request $request, User $user)
 {
-    // Check if the authenticated user has the 'Employee' role
+    
     if (!auth()->user()->hasRole('Employee')) {
         return redirect()->back()->with('error', 'You do not have permission to charge credit.');
     }
 
-    // Validate the input to ensure it's a positive numeric value
+   
     $request->validate([
-        'amount' => 'required|numeric|min:1',  // Minimum value 1, or adjust as needed
+        'amount' => 'required|numeric|min:1',  
     ]);
      
-    // Add the credit to the specified user's account
+
     $user->credit += $request->input('amount');
     $user->save();
 
     return redirect()->route('profile', ['user' => $user->id])
                      ->with('success', 'Credit charged successfully!');
 }
+
+    public function resetCredit(Request $request, User $user){
+        if (!auth()->user()->hasrole('Employee')) {
+            return redirect()->back()->with('error', 'You do not have permission to reset.');
+        } 
+        
+        $user->credit = 0 ;
+        $user->save();
+        return redirect()->route('list', ['user' => $user->id]);
+    }
 
 
 }

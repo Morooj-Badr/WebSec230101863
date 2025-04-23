@@ -37,6 +37,7 @@
                       <th scope="col">Name</th>
                       <th scope="col">Email</th>
                       <th scope="col">Roles</th>
+                      <th scope="col">Credit</th>
                       <th scope="col"></th>
                   </tr>
               </thead>
@@ -45,6 +46,8 @@
                   <td scope="col">{{$user->id}}</td>
                   <td scope="col">{{$user->name}}</td>
                   <td scope="col">{{$user->email}}</td>
+                  <td scope="col">{{$user->role}}</td>
+                  <td scope="col">{{$user->credit}}</td>
                   <td scope="col">
                       @foreach($user->roles as $role)
                           <span class="badge bg-primary">{{$role->name}}</span>
@@ -67,13 +70,21 @@
                       </form>
                       @endcan
 
-                      <!-- Check if user is a 'Customer' and employee is logged in -->
+                     
                       <form action="{{ route('charge_credit', ['user' => $user->id]) }}" method="POST" style="display:inline;">
-    @csrf
-    <input type="number" name="amount" class="form-control" placeholder="Enter amount" required style="width: 150px; display: inline-block;">
-    <button type="submit" class="btn btn-warning">Charge Credit</button>
-</form>
+                        @csrf
+                        <input type="number" name="amount" class="form-control" placeholder="Enter amount" required style="width: 150px; display: inline-block;">
+                        <button type="submit" class="btn btn-warning">Charge Credit</button>
+                    </form>
 
+                    @can('Reset_Credit')
+                    <td scope="col">
+
+                    <form action="{{ route('resetCredit') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-danger" >Reset Credit</button>
+                    </form>
+                    @endcan
                       
                   </td>
               </tr>

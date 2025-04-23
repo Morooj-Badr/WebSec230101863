@@ -10,9 +10,13 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use DB;
 use Artisan;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerificationEmail;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\Carbon;
 
 class UsersController extends Controller {
 
@@ -23,15 +27,15 @@ class UsersController extends Controller {
             abort(401);
         }
     
-        // Start the query
+        
         $query = User::query();
     
-        // If the logged-in user is an employee, only show customers
+        
         if (auth()->user()->hasRole('Employee')) {
             $query->role('Customer');
         }
     
-        // Apply keyword search if present
+        //filtering
         if ($request->filled('keywords')) {
             $query->where(function ($q) use ($request) {
                 $q->where("name", "like", "%" . $request->keywords . "%")
@@ -39,7 +43,7 @@ class UsersController extends Controller {
             });
         }
     
-        // Eager load roles for performance
+        
         $users = $query->with('roles')->get();
     
         return view('users.list', compact('users'));
@@ -47,7 +51,7 @@ class UsersController extends Controller {
     
 
     public function register(Request $request) {
-        // If user is logged in and is NOT an admin, deny access
+        
         if (auth()->check() && !auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized action.');
         }
@@ -79,6 +83,15 @@ class UsersController extends Controller {
 	    $user->password = bcrypt($request->password); //Secure
 	    $user->save();
 
+        $token = Crypt::encryptString(json_encode([
+            'id' => $user->id,
+            'email' => $user->email
+        ]));
+    
+        $link = route("verify", ['token' => $token]);
+    
+        Mail::to($user->email)->send(new VerificationEmail($link, $user->name));
+    
         return redirect('/');
     }
 
@@ -93,6 +106,11 @@ class UsersController extends Controller {
 
         $user = User::where('email', $request->email)->first();
         Auth::setUser($user);
+
+        if(!$user->email_verified_at)
+    return redirect()->back()->withInput($request->input())
+    ->withErrors('Your email is not verified.');
+
 
         return redirect('/');
     }
@@ -175,7 +193,7 @@ class UsersController extends Controller {
             abort(401);
         }
     
-        $user->delete();  // Correct method to delete the user
+        $user->delete();  
     
         return redirect()->route('users');
     }
@@ -222,30 +240,43 @@ class UsersController extends Controller {
 
     }
 
-    // Handle adding credit
-    // In CreditController.php
+ 
 
 public function addCredit(Request $request, User $user)
 {
-    // Check if the logged-in user has the 'employee' role
+    
     if (!auth()->user()->hasRole('Employee')) {
         return redirect()->back()->with('error', 'You do not have permission to add credit.');
     }
 
-    // Validate input to ensure it's numeric and positive
+    
     $request->validate([
-        'amount' => 'required|numeric|min:0.01', // Enforce positive amounts only
+        'amount' => 'required|numeric|min:0.01', 
     ]);
 
-    // Add the credit to the specified user's account
+   
     $user->credit += $request->input('amount');
     $user->save();
 
-    // Redirect with a success message
+    
     return redirect(route('profile', ['user'=>$user->id]));
 }
 
     
+ 
+public function verify(Request $request) {
+    $decryptedData = json_decode(Crypt::decryptString($request->token), true);
+    $user = User::find($decryptedData['id']);
     
+    
+    if (!$user) abort(401);
+
+    $user->email_verified_at = Carbon::now();
+    $user->save();
+
+    return view('users.verified', compact('user'));
+}
+
+
     
 } 

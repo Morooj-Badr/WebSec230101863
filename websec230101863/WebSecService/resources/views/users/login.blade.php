@@ -24,6 +24,9 @@
       <div class="form-group mb-2">
         <button type="submit" class="btn btn-primary">Login</button>
       </div>
+      <div class="form-group mb-2">
+        <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot Password?</a>
+      </div>
     </form>
     </div>
   </div>

@@ -7,7 +7,7 @@ use DB;
 
 
 
-use Illuminate\Support\Facades\Auth; // ✅ ADD THIS LINE
+use Illuminate\Support\Facades\Auth; 
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
@@ -62,7 +62,7 @@ class ProductsController extends Controller {
 			'model' => ['required', 'string', 'max:256'],
 			'description' => ['required', 'string', 'max:1024'],
 			'price' => ['required', 'numeric'],
-			'quantity' => ['required', 'integer', 'min:1'],  // Add quantity validation
+			'quantity' => ['required', 'integer', 'min:1'],  
 		]);
 	
 		$product = $product ?? new Product();
@@ -73,24 +73,24 @@ class ProductsController extends Controller {
 	}
 	
 
-	// Controller method for adding an item to the cart
+
 	public function addToCart(Request $request, $productId)
 	{
 		$product = Product::find($productId);
 		
 		$cart = session()->get('cart', []);
 	
-		$quantity = $request->input('quantity', 1); // Get the quantity from the request, default to 1 if not provided
+		$quantity = $request->input('quantity', 1); 
 		
-		// If the product is already in the cart, just update the quantity
+		
 		if (isset($cart[$productId])) {
-			$cart[$productId]['quantity'] += $quantity; // Add the specified quantity
+			$cart[$productId]['quantity'] += $quantity; 
 		} else {
 			$cart[$productId] = [
 				'name' => $product->name,
 				'quantity' => $quantity,
 				'price' => $product->price,
-				'image' => $product->photo, // Assuming 'photo' is the image field in your product model
+				'image' => $product->photo, 
 			];
 		}
 	
@@ -106,22 +106,22 @@ class ProductsController extends Controller {
     $product = Product::find($productId);
     $user = Auth::user();
     
-    // Get the quantity from the form
-    $quantityToBuy = $request->input('quantity', 1);  // Default to 1 if no quantity provided
 
-    // Check if user has enough credit
+    $quantityToBuy = $request->input('quantity', 1);  
+
+
     if ($user->credit >= $product->price * $quantityToBuy) {
-        // Check if enough quantity is available
+  
         if ($product->quantity >= $quantityToBuy) {
-            // Deduct the price from user's credit
+           
             $user->credit -= $product->price * $quantityToBuy;
             $user->save();
 
-            // Reduce the product quantity
+           
             $product->quantity -= $quantityToBuy;
             $product->save();
 
-            // You can also record the order in the database if needed
+            
 
             return redirect()->route('profile', ['user' => $user->id])
                 ->with('success', 'Product bought successfully!');
